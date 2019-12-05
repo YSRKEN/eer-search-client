@@ -7,7 +7,7 @@ class Database:
         self.db_name = db_name
         with closing(sqlite3.connect(self.db_name)) as conn:
             c = conn.cursor()
-            query = '''CREATE TABLE IF NOT EXISTS page_cache (
+            query = '''CREATE TABLE IF NOT EXISTS item_cache (
                 id TEXT PRIMARY KEY,
                 url TEXT NOT NULL,
                 last_update INTEGER NOT NULL,
