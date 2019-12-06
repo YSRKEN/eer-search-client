@@ -31,26 +31,35 @@ def search():
 
     # HTTPリクエスト・スクレイピングを実施
     url = 'https://www.e-earphone.jp/shop/shopbrand.html'
-    parameter = {
-        'search_page': 1,
-        'search': '',
-        'category': 'ct3264' if item_category == 'new' else 'ct3265',
-        'company1': '',
-        'prize1': item_name,
-        'content1': '',
-        'money1': '',
-        'money2': '',
-        'originalcode1': ''
-    }
-    tree = DomObject.from_string(http_client.post_html(url, parameter))
     result = []
-    for record in tree.select_all('ul.M_innerList > li'):
-        name = record.select_all('p.M_cl_name')[0].text_content()
-        price = record.select_all('span.M_cl_consPrice')[0].text_content()
-        result.append({
-            'price': int(re.sub('[^0-9]', '', price)),
-            'name': name
-        })
+    page_index = 1
+    while True:
+        parameter = {
+            'page': page_index,
+            'search': item_name,
+            'sort': 'order',
+            'money1': '',
+            'money2': '',
+            'prize1': item_name,
+            'company1': '',
+            'content1': '',
+            'originalcode1': '',
+            'category': 'ct3264' if item_category == 'new' else 'ct3265',
+            'subcategory': ''
+        }
+        tree = DomObject.from_string(http_client.get_html(url, parameter))
+        temp = tree.select_all('ul.M_innerList > li')
+        if len(temp) == 0:
+            break
+        for record in temp:
+            name = record.select_all('p.M_cl_name')[0].text_content()
+            price = record.select_all('span.M_cl_consPrice')[0].text_content()
+            result.append({
+                'price': int(re.sub('[^0-9]', '', price)),
+                'name': name
+            })
+        print(f'{page_index} {len(result)}')
+        page_index += 1
 
     return jsonify({
         'status': 'OK',

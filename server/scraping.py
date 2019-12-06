@@ -50,7 +50,7 @@ class HttpClient:
         page = requests.post(url=url, data=parameter, headers=headers)
         return page.content
 
-    def get_html(self, url: str) -> str:
+    def get_html(self, url: str, parameter: Dict[str, any] = None) -> str:
         wait_time = self.last_request + WAIT_TIME - time.time()
         if wait_time > 0.0:
             time.sleep(wait_time)
@@ -64,5 +64,7 @@ class HttpClient:
         }
 
         # ページを取得
+        if parameter is not None:
+            url += '?' + '&'.join([f'{key}={val}' for key, val in parameter.items()])
         page = requests.get(url=url, headers=headers)
         return page.content
