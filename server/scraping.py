@@ -1,7 +1,10 @@
+import time
 from typing import List, Dict
 
 import requests
 from lxml import html
+
+from constant import WAIT_TIME
 
 
 class DomObject:
@@ -27,7 +30,39 @@ class DomObject:
 
 
 class HttpClient:
-    @staticmethod
-    def post_html(url: str, parameter: Dict[str, any]) -> str:
-        page = requests.post(url=url, data=parameter)
+    def __init__(self):
+        self.last_request = time.time()
+
+    def post_html(self, url: str, parameter: Dict[str, any]) -> str:
+        wait_time = self.last_request + WAIT_TIME - time.time()
+        if wait_time > 0.0:
+            time.sleep(wait_time)
+        self.last_request = time.time()
+
+        # ヘッダーを設定
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+                          ' Chrome/62.0.3202.94 Safari/537.36',
+            'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8'
+        }
+
+        # ページを取得
+        page = requests.post(url=url, data=parameter, headers=headers)
+        return page.content
+
+    def get_html(self, url: str) -> str:
+        wait_time = self.last_request + WAIT_TIME - time.time()
+        if wait_time > 0.0:
+            time.sleep(wait_time)
+        self.last_request = time.time()
+
+        # ヘッダーを設定
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+                          ' Chrome/62.0.3202.94 Safari/537.36',
+            'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8'
+        }
+
+        # ページを取得
+        page = requests.get(url=url, headers=headers)
         return page.content
