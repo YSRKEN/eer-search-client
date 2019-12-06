@@ -1,6 +1,5 @@
 import re
 
-import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -17,16 +16,11 @@ def hello():
     return 'Hello World!'
 
 
-@app.route('/search')
-def search():
+@app.route('/search_new')
+def search_new():
     # 検索キーワード
     item_name = request.args.get('item_name')
     if item_name is None:
-        return jsonify({'status': 'NG', 'body': []})
-
-    # 検索カテゴリー(new、またはused)
-    item_category = request.args.get('item_category')
-    if item_category is None:
         return jsonify({'status': 'NG', 'body': []})
 
     # HTTPリクエスト・スクレイピングを実施
@@ -44,7 +38,51 @@ def search():
             'company1': '',
             'content1': '',
             'originalcode1': '',
-            'category': 'ct3264' if item_category == 'new' else 'ct3265',
+            'category': 'ct3264',
+            'subcategory': ''
+        }
+        tree = DomObject.from_string(http_client.get_html(url, parameter))
+        temp = tree.select_all('ul.M_innerList > li')
+        if len(temp) == 0:
+            break
+        for record in temp:
+            name = record.select_all('p.M_cl_name')[0].text_content()
+            price = record.select_all('span.M_cl_consPrice')[0].text_content()
+            result.append({
+                'price': int(re.sub('[^0-9]', '', price)),
+                'name': name
+            })
+        page_index += 1
+
+    return jsonify({
+        'status': 'OK',
+        'body': result
+    })
+
+
+@app.route('/search_used')
+def search_used():
+    # 検索キーワード
+    item_name = request.args.get('item_name')
+    if item_name is None:
+        return jsonify({'status': 'NG', 'body': []})
+
+    # HTTPリクエスト・スクレイピングを実施
+    url = 'https://www.e-earphone.jp/shop/shopbrand.html'
+    result = []
+    page_index = 1
+    while True:
+        parameter = {
+            'page': page_index,
+            'search': item_name,
+            'sort': 'order',
+            'money1': '',
+            'money2': '',
+            'prize1': item_name,
+            'company1': '',
+            'content1': '',
+            'originalcode1': '',
+            'category': 'ct3265',
             'subcategory': ''
         }
         tree = DomObject.from_string(http_client.get_html(url, parameter))
