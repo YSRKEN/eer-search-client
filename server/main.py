@@ -1,15 +1,15 @@
-from lxml import html
+import re
+
 import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from constant import DB_NAME, SERVER_PORT
-from database import Database
+from constant import SERVER_PORT
+from scraping import DomObject, HttpClient
 
 app = Flask(__name__)
 CORS(app)
-
-db = Database(DB_NAME)
+http_client = HttpClient()
 
 
 @app.route('/')
@@ -29,9 +29,8 @@ def search():
     if item_category is None:
         return jsonify({'status': 'NG', 'body': []})
 
-    print(item_name)
-    print(item_category)
-
+    # HTTPリクエスト・スクレイピングを実施
+    url = 'https://www.e-earphone.jp/shop/shopbrand.html'
     parameter = {
         'search_page': 1,
         'search': '',
@@ -43,16 +42,19 @@ def search():
         'money2': '',
         'originalcode1': ''
     }
-    page = requests.post('https://www.e-earphone.jp/shop/shopbrand.html', data=parameter)
-    tree = html.fromstring(page.content)
-    for record in tree.cssselect('ul.M_innerList > li'):
-        name = record.cssselect('p.M_cl_name')[0].text_content()
-        price = record.cssselect('span.M_cl_consPrice')[0].text_content()
-        print(f'{price} {name}')
+    tree = DomObject.from_string(http_client.post_html(url, parameter))
+    result = []
+    for record in tree.select_all('ul.M_innerList > li'):
+        name = record.select_all('p.M_cl_name')[0].text_content()
+        price = record.select_all('span.M_cl_consPrice')[0].text_content()
+        result.append({
+            'price': int(re.sub('[^0-9]', '', price)),
+            'name': name
+        })
 
     return jsonify({
         'status': 'OK',
-        'body': []
+        'body': result
     })
 
 
