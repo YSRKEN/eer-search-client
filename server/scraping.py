@@ -1,5 +1,5 @@
 import time
-from typing import List, Dict
+from typing import List, Dict, Union
 
 import requests
 from lxml import html
@@ -22,11 +22,24 @@ class DomObject:
         dom.dom = html_element
         return dom
 
+    def select(self, css_query: str) -> Union['DomObject', None]:
+        temp = self.dom.cssselect(css_query)
+        if len(temp) > 0:
+            return DomObject.from_html_element(temp[0])
+        else:
+            return None
+
     def select_all(self, css_query: str) -> List['DomObject']:  # PEP484
         return [DomObject.from_html_element(x) for x in self.dom.cssselect(css_query)]
 
     def text_content(self) -> str:
         return self.dom.text_content()
+
+    def attribute(self, key: str, default_value: str) -> str:
+        if key in self.dom.attrib:
+            return self.dom.attrib[key]
+        else:
+            return default_value
 
 
 class HttpClient:
