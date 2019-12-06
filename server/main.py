@@ -97,6 +97,9 @@ def search_used():
     if item_name is None:
         return jsonify({'status': 'NG', 'body': []})
 
+    # 「【～～】」という表記を除去するか？
+    remove_keyword_flg = request.args.get('remove_keyword') is not None
+
     # HTTPリクエスト・スクレイピングを実施
     url = 'https://www.e-earphone.jp/shop/shopbrand.html'
     result = []
@@ -116,16 +119,48 @@ def search_used():
             'subcategory': ''
         }
         tree = DomObject.from_string(http_client.get_html(url, parameter))
-        temp = tree.select_all('ul.M_innerList > li')
-        if len(temp) == 0:
+
+        # 検索結果を1件づつ取り出す
+        item_list = tree.select_all('ul.M_innerList > li')
+        if len(item_list) == 0:
+            # これ以上ヒットしない＝ページめくり終了なのでbreak
             break
-        for record in temp:
-            name = record.select_all('p.M_cl_name')[0].text_content()
-            price = record.select_all('span.M_cl_consPrice')[0].text_content()
+        for record in item_list:
+            # 必要なDOMが収集できなければ飛ばす
+            item_name_dom = record.select('p.M_cl_name > a')
+            item_price_dom = record.select('p.M_cl_price > span')
+            item_img_dom = record.select('div.M_cl_imgWrap > a > img')
+            if item_name_dom is None or item_price_dom is None or item_img_dom is None:
+                print(f'skip: page_index={page_index}')
+                continue
+
+            # 各要素を収集する
+            item_name = item_name_dom.text_content()
+            item_price = int(re.sub('[^0-9]', '', item_price_dom.text_content()))
+            item_url = 'https://www.e-earphone.jp' + item_name_dom.attribute('href', '')
+            image_url = 'https://www.e-earphone.jp' + item_img_dom.attribute('src', '')
+
+            # フィルタ
+            item_name = item_name.replace('【中古】', '')
+            m = re.match('^.+【([^/]+)/([^/]+)】$', item_name)
+            shop_name = m.group(1)
+            shop_item_id = m.group(2)
+            if remove_keyword_flg:
+                item_name = re.sub('【.+?】', '', item_name)
+            item_name = re.sub('^ +', '', item_name)
+            item_name = re.sub(' +$', '', item_name)
+
+            # 一覧に追加する
             result.append({
-                'price': int(re.sub('[^0-9]', '', price)),
-                'name': name
+                'price': item_price,
+                'name': item_name,
+                'item_url': item_url,
+                'image_url': image_url,
+                'shop_name': shop_name,
+                'shop_item_id': shop_item_id
             })
+
+        # ページめくりの準備
         page_index += 1
 
     return jsonify({
