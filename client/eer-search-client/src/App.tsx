@@ -18,8 +18,84 @@ interface UsedItem {
   shop_item_id: string;
 }
 
+type ShowMode = 'None' | 'New' | 'Used';
+
+const ResultView: React.FC<{
+  showMode: ShowMode,
+  newItemList: NewItem[],
+  usedItemList: UsedItem[]
+}> = ({ showMode, newItemList, usedItemList }) => {
+  switch (showMode) {
+    case 'None':
+      return <></>;
+    case 'New':
+      return (
+        <div className="row mt-3 justify-content-center">
+          <div className="col-12 col-md-6">
+            <table className="border table">
+              <thead>
+                <tr>
+                  <th>商品名</th>
+                  <th>価格</th>
+                  <th>画像</th>
+                </tr>
+              </thead>
+              <tbody>
+                {newItemList.map((record, index) => {
+                  return (
+                    <tr key={index}>
+                      <td><a href={record.item_url}>{record.name}</a></td>
+                      <td>{record.price}</td>
+                      <td><img src={record.image_url} width={40} height={40} alt={record.name} /></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    case 'Used':
+      return (
+        <div className="row mt-3 justify-content-center">
+          <div className="col-12 col-md-6">
+            <table className="border table">
+              <thead>
+                <tr>
+                  <th>商品名</th>
+                  <th>価格</th>
+                  <th>販売店</th>
+                  <th>商品番号</th>
+                  <th>画像</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usedItemList.map((record, index) => {
+                  return (
+                    <tr key={index}>
+                      <td><a href={record.item_url}>{record.name}</a></td>
+                      <td>{record.price}</td>
+                      <td>{record.shop_name}</td>
+                      <td>{record.shop_item_id}</td>
+                      <td><img src={record.image_url} width={40} height={40} alt={record.name} /></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    default:
+      return <></>;
+  }
+};
+
 const App: React.FC = () => {
   const [searchWord, setSearchWord] = useState('');
+  const [newItemList, setNewItemList] = useState<NewItem[]>([]);
+  const [usedItemList, setUsedItemList] = useState<UsedItem[]>([]);
+  const [showMode, setShowMode] = useState<ShowMode>('None');
 
   const onChangeSearchWord = (e: FormEvent<HTMLInputElement>) => {
     setSearchWord(e.currentTarget.value);
@@ -29,13 +105,15 @@ const App: React.FC = () => {
 
   const onClickNewSearch = () => {
     fetch(`${SERVER_URL}/search_new?item_name=${searchWord}&remove_keyword`).then(res => res.json()).then((body: NewItem[]) => {
-      console.log(body);
+      setNewItemList(body);
+      setShowMode('New');
     });
   };
 
   const onClickUsedSearch = () => {
     fetch(`${SERVER_URL}/search_used?item_name=${searchWord}&remove_keyword`).then(res => res.json()).then((body: UsedItem[]) => {
-      console.log(body);
+      setUsedItemList(body);
+      setShowMode('Used');
     });
   };
 
@@ -52,7 +130,7 @@ const App: React.FC = () => {
             <div className="form-group">
               <label htmlFor="searchWord">検索ワード</label>
               <input type="text" className="form-control" id="searchWord" placeholder="検索ワード"
-                value={searchWord} onChange={onChangeSearchWord}/>
+                value={searchWord} onChange={onChangeSearchWord} />
             </div>
             <div className="text-center">
               <button type="button" className="btn btn-primary"
@@ -63,6 +141,7 @@ const App: React.FC = () => {
           </form>
         </div>
       </div>
+      <ResultView showMode={showMode} newItemList={newItemList} usedItemList={usedItemList} />
     </div>
   );
 }
