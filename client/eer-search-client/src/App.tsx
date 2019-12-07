@@ -134,14 +134,20 @@ const ResultUsedView: React.FC<{
   const [nameFilter, setNameFilter] = useState('');
   const [sortKey, setSortKey] = useState('');
   const [sortDescFlg, setSortDescFlg] = useState(false);
+  const [shopFilter, setShopFilter] = useState('');
 
   const onChangeMameFilter = (e: FormEvent<HTMLInputElement>) => {
     setNameFilter(e.currentTarget.value);
   };
 
+  const onChangeShop = (e: FormEvent<HTMLSelectElement>) => {
+    setShopFilter(e.currentTarget.value);
+  };
+
   const createItemList = () => {
     let temp = usedItemList
       .filter(record => nameFilter !== '' ? record.name.includes(nameFilter) : true);
+    temp = temp.filter(record => shopFilter !== '' ? record.shop_name === shopFilter : true);
     switch(sortKey) {
       case '商品名':
         temp = temp.sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0);
@@ -200,11 +206,21 @@ return (<>
     <div className="row mt-3 justify-content-center">
       <div className="col-12 col-md-6">
         <form>
-          <div className="form-group d-flex my-0">
+          <div className="form-group d-flex mt-0">
             <label className="text-nowrap mr-3 mt-2" htmlFor="filterWord">名前フィルタ</label>
             <input type="text" id="filterWord" className="form-control"
               placeholder="入力したワードを含むもののみ表示"
               value={nameFilter} onChange={onChangeMameFilter} />
+          </div>
+          <div className="form-group d-flex mb-0">
+            <label className="text-nowrap mr-3 mt-2" htmlFor="filterShop">販売店</label>
+            <select className="form-control" id="filterShop" value={shopFilter} onChange={onChangeShop}>
+                <option value=''>(未指定)</option>
+                <option value='大阪日本橋本店'>大阪日本橋本店</option>
+                <option value='梅田EST店'>梅田EST店</option>
+                <option value='名古屋大須店'>名古屋大須店</option>
+                <option value='秋葉原店'>秋葉原店</option>
+              </select>
           </div>
         </form>
       </div>
