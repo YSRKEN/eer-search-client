@@ -1,6 +1,8 @@
 import React, { useState, FormEvent, useEffect } from 'react';
 
-const SERVER_URL = 'http://localhost:5000';
+const SERVER_URL = window.location.port === '3000'
+  ? 'http://localhost:5000'
+  : window.location.protocol + '//' + window.location.host;
 
 interface NewItem {
   price: number;

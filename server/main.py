@@ -1,6 +1,6 @@
 import re
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 
 from constant import SERVER_PORT, MAX_PAGE
@@ -12,8 +12,8 @@ http_client = HttpClient()
 
 
 @app.route('/')
-def hello():
-    return 'Hello World!'
+def index():
+    return render_template('index.html')
 
 
 @app.route('/search_new')
@@ -183,6 +183,11 @@ def search_used():
         page_index += 1
 
     return jsonify(result)
+
+
+@app.route("/<static_file>")
+def manifest(static_file: str):
+    return send_from_directory('./root', static_file)
 
 
 if __name__ == '__main__':
