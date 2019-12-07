@@ -3,7 +3,7 @@ import re
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from constant import SERVER_PORT
+from constant import SERVER_PORT, MAX_PAGE
 from scraping import DomObject, HttpClient
 
 app = Flask(__name__)
@@ -19,8 +19,8 @@ def hello():
 @app.route('/search_new')
 def search_new():
     # 検索キーワード
-    item_name = request.args.get('item_name')
-    if item_name is None:
+    item_keyword = request.args.get('item_name')
+    if item_keyword is None:
         return jsonify({'status': 'NG', 'body': []})
 
     # 「【～～】」という表記を除去するか？
@@ -31,34 +31,46 @@ def search_new():
     result = []
     page_index = 1
     while True:
+        # 捲るページ数に制限を設ける
+        if page_index > MAX_PAGE:
+            break
+
         # DOMを取得
         parameter = {
             'page': page_index,
-            'search': item_name,
+            'search': item_keyword,
             'sort': 'order',
             'money1': '',
             'money2': '',
-            'prize1': item_name,
+            'prize1': item_keyword,
             'company1': '',
             'content1': '',
             'originalcode1': '',
             'category': 'ct3264',
             'subcategory': ''
         }
-        tree = DomObject.from_string(http_client.get_html(url, parameter))
+        response_html = http_client.get_html(url, parameter)
+        tree = DomObject.from_string(response_html)
 
         # 検索結果を1件づつ取り出す
         item_list = tree.select_all('ul.M_innerList > li')
         if len(item_list) == 0:
             # これ以上ヒットしない＝ページめくり終了なのでbreak
             break
+        print(f'page_index={page_index} {len(item_list)} items')
         for record in item_list:
             # 必要なDOMが収集できなければ飛ばす
             item_name_dom = record.select('p.M_cl_name > a')
             item_price_dom = record.select('p.M_cl_price > span')
             item_img_dom = record.select('div.M_cl_imgWrap > a > img')
-            if item_name_dom is None or item_price_dom is None or item_img_dom is None:
-                print(f'skip: page_index={page_index}')
+            if item_name_dom is None:
+                print(f'skip: page_index={page_index}-name')
+                continue
+            if item_price_dom is None:
+                print(f'skip: page_index={page_index}-price')
+                continue
+            if item_img_dom is None:
+                print(f'skip: page_index={page_index}-img')
                 continue
 
             # 各要素を収集する
@@ -90,8 +102,8 @@ def search_new():
 @app.route('/search_used')
 def search_used():
     # 検索キーワード
-    item_name = request.args.get('item_name')
-    if item_name is None:
+    item_keyword = request.args.get('item_name')
+    if item_keyword is None:
         return jsonify({'status': 'NG', 'body': []})
 
     # 「【～～】」という表記を除去するか？
@@ -102,13 +114,17 @@ def search_used():
     result = []
     page_index = 1
     while True:
+        # 捲るページ数に制限を設ける
+        if page_index > MAX_PAGE:
+            break
+
         parameter = {
             'page': page_index,
-            'search': item_name,
+            'search': item_keyword,
             'sort': 'order',
             'money1': '',
             'money2': '',
-            'prize1': item_name,
+            'prize1': item_keyword,
             'company1': '',
             'content1': '',
             'originalcode1': '',
@@ -127,8 +143,14 @@ def search_used():
             item_name_dom = record.select('p.M_cl_name > a')
             item_price_dom = record.select('p.M_cl_price > span')
             item_img_dom = record.select('div.M_cl_imgWrap > a > img')
-            if item_name_dom is None or item_price_dom is None or item_img_dom is None:
-                print(f'skip: page_index={page_index}')
+            if item_name_dom is None:
+                print(f'skip: page_index={page_index}-name')
+                continue
+            if item_price_dom is None:
+                print(f'skip: page_index={page_index}-price')
+                continue
+            if item_img_dom is None:
+                print(f'skip: page_index={page_index}-img')
                 continue
 
             # 各要素を収集する
