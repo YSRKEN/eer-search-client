@@ -182,7 +182,7 @@ const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     , [loadIngFlg]);
 
-  const isDisabledSearchButton = () => searchWord === '';
+  const isDisabledSearchButton = () => searchWord === '' || loadIngFlg;
 
   const onClickSearch = () => {
     setLoadingFlg(true);
@@ -201,11 +201,12 @@ const App: React.FC = () => {
             <div className="form-group">
               <label htmlFor="searchWord">検索ワード</label>
               <input type="text" className="form-control" id="searchWord" placeholder="検索ワード"
-                value={searchWord} onChange={onChangeSearchWord} />
+                value={searchWord} onChange={onChangeSearchWord} readOnly={loadIngFlg}/>
             </div>
             <div className="form-group d-flex">
               <label className="text-nowrap mt-2" htmlFor="showMode">商品状態</label>
-              <select className="form-control ml-3" id="showMode" value={showMode} onChange={onChangeShowMode}>
+              <select className="form-control ml-3" id="showMode" value={showMode} onChange={onChangeShowMode}
+                disabled={loadIngFlg}>
                 <option value='New'>新品</option>
                 <option value='Used'>中古</option>
               </select>
