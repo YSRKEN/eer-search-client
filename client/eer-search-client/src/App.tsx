@@ -24,9 +24,68 @@ const ResultNewView: React.FC<{
   newItemList: NewItem[]
 }> = ({ newItemList }) => {
   const [nameFilter, setNameFilter] = useState('');
+  const [sortKey, setSortKey] = useState('');
+  const [sortDescFlg, setSortDescFlg] = useState(false);
 
   const onChangeMameFilter = (e: FormEvent<HTMLInputElement>) => {
     setNameFilter(e.currentTarget.value);
+  };
+
+  const createItemList = () => {
+    let temp = newItemList
+      .filter(record => nameFilter !== '' ? record.name.includes(nameFilter) : true);
+    switch(sortKey) {
+      case '商品名':
+        temp = temp.sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0);
+        break;
+      case '価格':
+          temp = temp.sort((a, b) => a.price > b.price ? 1 : a.price < b.price ? -1 : 0);
+          break;
+    }
+    if (sortDescFlg) {
+      temp = temp.reverse();
+    }
+    return temp;
+  };
+
+  const itemNameLabel = () => {
+    if (sortKey !== '商品名') {
+      return '商品名';
+    }
+    return '商品名' + (sortDescFlg ? '↓' : '↑');
+  }
+
+  const itemPriceLabel = () => {
+    if (sortKey !== '価格') {
+      return '価格';
+    }
+    return '価格' + (sortDescFlg ? '↓' : '↑');
+  }
+
+  const onClickItemNameLabel = () => {
+    if (sortKey !== '商品名') { 
+      setSortKey('商品名');
+      setSortDescFlg(false);
+    } else {
+      if (!sortDescFlg) {
+        setSortDescFlg(true);
+      } else {
+        setSortKey('');
+      }
+    }
+  };
+
+  const onClickItemPriceLabel = () => {
+    if (sortKey !== '価格') { 
+      setSortKey('価格');
+      setSortDescFlg(false);
+    } else {
+      if (!sortDescFlg) {
+        setSortDescFlg(true);
+      } else {
+        setSortKey('');
+      }
+    }
   };
 
   return (<>
@@ -47,15 +106,13 @@ const ResultNewView: React.FC<{
         <table className="border table">
           <thead>
             <tr>
-              <th className="text-nowrap">商品名</th>
-              <th className="text-nowrap">価格</th>
+              <th className="text-nowrap" onClick={onClickItemNameLabel}>{itemNameLabel()}</th>
+              <th className="text-nowrap" onClick={onClickItemPriceLabel}>{itemPriceLabel()}</th>
               <th className="text-nowrap">画像</th>
             </tr>
           </thead>
           <tbody>
-            {newItemList
-              .filter(record => nameFilter !== '' ? record.name.includes(nameFilter) : true)
-              .map((record, index) => {
+            {createItemList().map((record, index) => {
                 return (
                   <tr key={index}>
                     <td><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
@@ -75,12 +132,71 @@ const ResultUsedView: React.FC<{
   usedItemList: UsedItem[]
 }> = ({ usedItemList }) => {
   const [nameFilter, setNameFilter] = useState('');
+  const [sortKey, setSortKey] = useState('');
+  const [sortDescFlg, setSortDescFlg] = useState(false);
 
   const onChangeMameFilter = (e: FormEvent<HTMLInputElement>) => {
     setNameFilter(e.currentTarget.value);
   };
 
-  return (<>
+  const createItemList = () => {
+    let temp = usedItemList
+      .filter(record => nameFilter !== '' ? record.name.includes(nameFilter) : true);
+    switch(sortKey) {
+      case '商品名':
+        temp = temp.sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0);
+        break;
+      case '価格':
+          temp = temp.sort((a, b) => a.price > b.price ? 1 : a.price < b.price ? -1 : 0);
+          break;
+    }
+    if (sortDescFlg) {
+      temp = temp.reverse();
+    }
+    return temp;
+  };
+
+  const itemNameLabel = () => {
+    if (sortKey !== '商品名') {
+      return '商品名';
+    }
+    return '商品名' + (sortDescFlg ? '↓' : '↑');
+  }
+
+  const itemPriceLabel = () => {
+    if (sortKey !== '価格') {
+      return '価格';
+    }
+    return '価格' + (sortDescFlg ? '↓' : '↑');
+  }
+
+  const onClickItemNameLabel = () => {
+    if (sortKey !== '商品名') { 
+      setSortKey('商品名');
+      setSortDescFlg(false);
+    } else {
+      if (!sortDescFlg) {
+        setSortDescFlg(true);
+      } else {
+        setSortKey('');
+      }
+    }
+  };
+
+  const onClickItemPriceLabel = () => {
+    if (sortKey !== '価格') { 
+      setSortKey('価格');
+      setSortDescFlg(false);
+    } else {
+      if (!sortDescFlg) {
+        setSortDescFlg(true);
+      } else {
+        setSortKey('');
+      }
+    }
+  };
+
+return (<>
     <div className="row mt-3 justify-content-center">
       <div className="col-12 col-md-6">
         <form>
@@ -98,17 +214,15 @@ const ResultUsedView: React.FC<{
         <table className="border table">
           <thead>
             <tr>
-              <th className="text-nowrap">商品名</th>
-              <th className="text-nowrap">価格</th>
+              <th className="text-nowrap" onClick={onClickItemNameLabel}>{itemNameLabel()}</th>
+              <th className="text-nowrap" onClick={onClickItemPriceLabel}>{itemPriceLabel()}</th>
               <th className="text-nowrap">販売店</th>
               <th className="text-nowrap">商品番号</th>
               <th className="text-nowrap">画像</th>
             </tr>
           </thead>
           <tbody>
-            {usedItemList
-              .filter(record => nameFilter !== '' ? record.name.includes(nameFilter) : true)
-              .map((record, index) => {
+            {createItemList().map((record, index) => {
               return (
                 <tr key={index}>
                   <td><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
