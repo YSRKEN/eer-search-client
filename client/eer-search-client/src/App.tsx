@@ -22,65 +22,109 @@ type ShowMode = 'New' | 'Used';
 
 const ResultNewView: React.FC<{
   newItemList: NewItem[]
-}> = ({ newItemList }) => (
-  <div className="row mt-3 justify-content-center">
-    <div className="col-12 col-md-6">
-      <table className="border table">
-        <thead>
-          <tr>
-            <th className="text-nowrap">商品名</th>
-            <th className="text-nowrap">価格</th>
-            <th className="text-nowrap">画像</th>
-          </tr>
-        </thead>
-        <tbody>
-          {newItemList.map((record, index) => {
-            return (
-              <tr key={index}>
-                <td><a href={record.item_url}>{record.name}</a></td>
-                <td>{record.price}</td>
-                <td><img src={record.image_url} width={40} height={40} alt={record.name} /></td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+}> = ({ newItemList }) => {
+  const [nameFilter, setNameFilter] = useState('');
+
+  const onChangeMameFilter = (e: FormEvent<HTMLInputElement>) => {
+    setNameFilter(e.currentTarget.value);
+  };
+
+  return (<>
+    <div className="row mt-3 justify-content-center">
+      <div className="col-12 col-md-6">
+        <form>
+          <div className="form-group d-flex my-0">
+            <label className="text-nowrap mr-3 mt-2" htmlFor="filterWord">名前フィルタ</label>
+            <input type="text" id="filterWord" className="form-control"
+              placeholder="入力したワードを含むもののみ表示"
+              value={nameFilter} onChange={onChangeMameFilter} />
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
-);
+    <div className="row mt-3 justify-content-center">
+      <div className="col-12 col-md-6">
+        <table className="border table">
+          <thead>
+            <tr>
+              <th className="text-nowrap">商品名</th>
+              <th className="text-nowrap">価格</th>
+              <th className="text-nowrap">画像</th>
+            </tr>
+          </thead>
+          <tbody>
+            {newItemList
+              .filter(record => nameFilter !== '' ? record.name.includes(nameFilter) : true)
+              .map((record, index) => {
+                return (
+                  <tr key={index}>
+                    <td><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
+                    <td>{record.price}</td>
+                    <td><img src={record.image_url} width={40} height={40} alt={record.name} /></td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </>);
+}
 
 const ResultUsedView: React.FC<{
   usedItemList: UsedItem[]
-}> = ({ usedItemList }) => (
-  <div className="row mt-3 justify-content-center">
-    <div className="col-12 col-md-6">
-      <table className="border table">
-        <thead>
-          <tr>
-            <th className="text-nowrap">商品名</th>
-            <th className="text-nowrap">価格</th>
-            <th className="text-nowrap">販売店</th>
-            <th className="text-nowrap">商品番号</th>
-            <th className="text-nowrap">画像</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usedItemList.map((record, index) => {
-            return (
-              <tr key={index}>
-                <td><a href={record.item_url}>{record.name}</a></td>
-                <td>{record.price}</td>
-                <td>{record.shop_name}</td>
-                <td>{record.shop_item_id}</td>
-                <td><img src={record.image_url} width={40} height={40} alt={record.name} /></td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+}> = ({ usedItemList }) => {
+  const [nameFilter, setNameFilter] = useState('');
+
+  const onChangeMameFilter = (e: FormEvent<HTMLInputElement>) => {
+    setNameFilter(e.currentTarget.value);
+  };
+
+  return (<>
+    <div className="row mt-3 justify-content-center">
+      <div className="col-12 col-md-6">
+        <form>
+          <div className="form-group d-flex my-0">
+            <label className="text-nowrap mr-3 mt-2" htmlFor="filterWord">名前フィルタ</label>
+            <input type="text" id="filterWord" className="form-control"
+              placeholder="入力したワードを含むもののみ表示"
+              value={nameFilter} onChange={onChangeMameFilter} />
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
-);
+    <div className="row mt-3 justify-content-center">
+      <div className="col-12 col-md-6">
+        <table className="border table">
+          <thead>
+            <tr>
+              <th className="text-nowrap">商品名</th>
+              <th className="text-nowrap">価格</th>
+              <th className="text-nowrap">販売店</th>
+              <th className="text-nowrap">商品番号</th>
+              <th className="text-nowrap">画像</th>
+            </tr>
+          </thead>
+          <tbody>
+            {usedItemList
+              .filter(record => nameFilter !== '' ? record.name.includes(nameFilter) : true)
+              .map((record, index) => {
+              return (
+                <tr key={index}>
+                  <td><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
+                  <td>{record.price}</td>
+                  <td>{record.shop_name}</td>
+                  <td>{record.shop_item_id}</td>
+                  <td><img src={record.image_url} width={40} height={40} alt={record.name} /></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </>);
+}
 
 const ResultView: React.FC<{
   showMode: ShowMode,
