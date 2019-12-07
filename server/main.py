@@ -84,10 +84,7 @@ def search_new():
         # ページめくりの準備
         page_index += 1
 
-    return jsonify({
-        'status': 'OK',
-        'body': result
-    })
+    return jsonify(result)
 
 
 @app.route('/search_used')
@@ -163,10 +160,7 @@ def search_used():
         # ページめくりの準備
         page_index += 1
 
-    return jsonify({
-        'status': 'OK',
-        'body': result
-    })
+    return jsonify(result)
 
 
 if __name__ == '__main__':
