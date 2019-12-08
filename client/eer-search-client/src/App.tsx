@@ -92,7 +92,7 @@ const ResultNewView: React.FC<{
 
   return (<>
     <div className="row mt-3 justify-content-center">
-      <div className="col-12 col-md-6">
+      <div className="col-12 col-md-8">
         <form>
           <div className="form-group d-flex my-0">
             <label className="text-nowrap mr-3 mt-2" htmlFor="filterWord">名前フィルタ</label>
@@ -104,7 +104,7 @@ const ResultNewView: React.FC<{
       </div>
     </div>
     <div className="row mt-3 justify-content-center">
-      <div className="col-12 col-md-6">
+      <div className="col-12 col-md-8">
         <table className="border table">
           <thead>
             <tr>
@@ -206,7 +206,7 @@ const ResultUsedView: React.FC<{
 
 return (<>
     <div className="row mt-3 justify-content-center">
-      <div className="col-12 col-md-6">
+      <div className="col-12 col-md-8">
         <form>
           <div className="form-group d-flex mt-0">
             <label className="text-nowrap mr-3 mt-2" htmlFor="filterWord">名前フィルタ</label>
@@ -228,7 +228,7 @@ return (<>
       </div>
     </div>
     <div className="row mt-3 justify-content-center">
-      <div className="col-12 col-md-6">
+      <div className="col-12 col-md-8">
         <table className="border table">
           <thead>
             <tr>
@@ -323,12 +323,12 @@ const App: React.FC = () => {
   return (
     <div className="container">
       <div className="row mt-3 justify-content-center">
-        <div className="col-12 col-md-6 text-center">
+        <div className="col-12 col-md-8 text-center">
           <h1>eイヤ検索アプリ</h1>
         </div>
       </div>
       <div className="row mt-3 justify-content-center">
-        <div className="col-12 col-md-6">
+        <div className="col-12 col-md-8">
           <form className="border p-3">
             <div className="form-group">
               <label htmlFor="searchWord">検索ワード</label>
@@ -349,7 +349,7 @@ const App: React.FC = () => {
         </div>
       </div>
       <div className="row mt-3 justify-content-center">
-        <div className="col-12 col-md-6">
+        <div className="col-12 col-md-8">
           <div className={`spinner-border text-primary ${loadIngFlg ? '' : 'd-none'}`} role="status">
             <span className="sr-only">Loading...</span>
           </div>
