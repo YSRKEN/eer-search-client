@@ -161,7 +161,7 @@ def search_used():
 
             # フィルタ
             item_name = item_name.replace('【中古】', '')
-            m = re.match('^.+【([^/]+)/([^/]+)】$', item_name)
+            m = re.match('^.+【([^/]*?)/([^/]*?)】$', item_name)
             shop_name = m.group(1)
             shop_item_id = m.group(2)
             if remove_keyword_flg:
