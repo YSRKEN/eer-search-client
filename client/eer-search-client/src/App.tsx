@@ -4,6 +4,8 @@ const SERVER_URL = window.location.port === '3000'
   ? 'http://localhost:5000'
   : window.location.protocol + '//' + window.location.host;
 
+const THUMBNAIL_SIZE = 60;
+
 interface NewItem {
   price: number;
   name: string;
@@ -105,7 +107,7 @@ const ResultNewView: React.FC<{
     </div>
     <div className="row mt-3 justify-content-center">
       <div className="col-12 col-md-8">
-        <table className="border table">
+        <table className="border table table-striped table-nowrap table-bordered table-sm">
           <thead>
             <tr>
               <th className="text-nowrap" onClick={onClickItemNameLabel}>{itemNameLabel()}</th>
@@ -117,9 +119,9 @@ const ResultNewView: React.FC<{
             {createItemList().map((record, index) => {
                 return (
                   <tr key={index}>
-                    <td><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
-                    <td>{record.price}</td>
-                    <td><img src={record.image_url} width={40} height={40} alt={record.name} /></td>
+                    <td className="align-middle"><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
+                    <td className="align-middle">{record.price}</td>
+                    <td className="align-middle"><img src={record.image_url} width={THUMBNAIL_SIZE} height={THUMBNAIL_SIZE} alt={record.name} /></td>
                   </tr>
                 );
               })}
@@ -229,7 +231,7 @@ return (<>
     </div>
     <div className="row mt-3 justify-content-center">
       <div className="col-12 col-md-8">
-        <table className="border table">
+        <table className="border table table-striped table-nowrap table-bordered table-sm">
           <thead>
             <tr>
               <th className="text-nowrap" onClick={onClickItemNameLabel}>{itemNameLabel()}</th>
@@ -243,11 +245,11 @@ return (<>
             {createItemList().map((record, index) => {
               return (
                 <tr key={index}>
-                  <td><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
-                  <td>{record.price}</td>
-                  <td>{record.shop_name}</td>
-                  <td>{record.shop_item_id}</td>
-                  <td><img src={record.image_url} width={40} height={40} alt={record.name} /></td>
+                  <td className="align-middle"><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
+                  <td className="align-middle">{record.price}</td>
+                  <td className="align-middle">{record.shop_name}</td>
+                  <td className="align-middle">{record.shop_item_id}</td>
+                  <td className="align-middle"><img src={record.image_url} width={THUMBNAIL_SIZE} height={THUMBNAIL_SIZE} alt={record.name} /></td>
                 </tr>
               );
             })}
