@@ -78,7 +78,7 @@ class HttpClient:
 
         # ページを取得
         if parameter is not None:
-            url += '?' + '&'.join([f'{key}={val}' for key, val in parameter.items()])
+            url += '?' + '&'.join([f'{key}={str(val).replace(" ", "%20")}' for key, val in parameter.items()])
         print(url)
         page = requests.get(url=url, headers=headers)
         return page.text

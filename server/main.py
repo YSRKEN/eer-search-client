@@ -106,6 +106,7 @@ def search_used():
     if item_keyword is None:
         return jsonify({'status': 'NG', 'body': []})
 
+
     # 「【～～】」という表記を除去するか？
     remove_keyword_flg = request.args.get('remove_keyword') is not None
 
@@ -162,8 +163,17 @@ def search_used():
             # フィルタ
             item_name = item_name.replace('【中古】', '')
             m = re.match('^.+【([^/]*?)/([^/]*?)】$', item_name)
-            shop_name = m.group(1)
-            shop_item_id = m.group(2)
+            if m is not None:
+                shop_name = m.group(1)
+                shop_item_id = m.group(2)
+            else:
+                m = re.match('^.+【([^/]*?)】$', item_name)
+                if m is not None:
+                    shop_name = m.group(1)
+                    shop_item_id = ''
+                else:
+                    shop_name = '(不明)'
+                    shop_item_id = ''
             if remove_keyword_flg:
                 item_name = re.sub('【.+?】', '', item_name)
             item_name = re.sub('^ +', '', item_name)
