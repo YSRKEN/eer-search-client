@@ -27,7 +27,7 @@ def search_new():
     remove_keyword_flg = request.args.get('remove_keyword') is not None
 
     # HTTPリクエスト・スクレイピングを実施
-    url = 'https://www.e-earphone.jp/shop/shopbrand.html'
+    url = 'https://www.e-earphone.jp/product/search/list/'
     result = []
     page_index = 1
     while True:
@@ -37,36 +37,38 @@ def search_new():
 
         # DOMを取得
         parameter = {
-            'page': page_index,
-            'search': item_keyword,
-            'sort': 'order',
-            'money1': '',
-            'money2': '',
-            'prize1': item_keyword,
-            'company1': '',
-            'content1': '',
-            'originalcode1': '',
-            'category': 'ct3264',
-            'subcategory': ''
+            'pageno': page_index,
+            'search_type': 1,
+            'search_word': item_keyword,
+            'orderby': 0
         }
         response_html = http_client.get_html(url, parameter)
         tree = DomObject.from_string(response_html)
 
         # 検索結果を1件づつ取り出す
-        item_list = tree.select_all('ul.M_innerList > li')
+        item_list = tree.select_all('div.item-list__contents')
         if len(item_list) == 0:
             # これ以上ヒットしない＝ページめくり終了なのでbreak
             break
         print(f'page_index={page_index} {len(item_list)} items')
         for record in item_list:
             # 必要なDOMが収集できなければ飛ばす
-            item_name_dom = record.select('p.M_cl_name > a')
-            item_price_dom = record.select('p.M_cl_price > span')
-            item_img_dom = record.select('div.M_cl_imgWrap > a > img')
+            item_brand_dom = record.select('p.item-list__brand')
+            item_name_dom = record.select('p.item-list__name')
+            item_url_dom = record.select('a')
+            item_price_doms = [x for x in record.select_all('p.item-list__price > span')
+                               if '￥' in x.text_content()]
+            item_img_dom = record.select('div.item-list__img img')
+            if item_brand_dom is None:
+                print(f'skip: page_index={page_index}-brand')
+                continue
+            if item_url_dom is None:
+                print(f'skip: page_index={page_index}-url')
+                continue
             if item_name_dom is None:
                 print(f'skip: page_index={page_index}-name')
                 continue
-            if item_price_dom is None:
+            if len(item_price_doms) == 0:
                 print(f'skip: page_index={page_index}-price')
                 continue
             if item_img_dom is None:
@@ -74,9 +76,9 @@ def search_new():
                 continue
 
             # 各要素を収集する
-            item_name = item_name_dom.text_content()
-            item_price = int(re.sub('[^0-9]', '', item_price_dom.text_content()))
-            item_url = 'https://www.e-earphone.jp' + item_name_dom.attribute('href', '')
+            item_name = item_brand_dom.text_content() + ' ' + item_name_dom.text_content()
+            item_price = int(re.sub('[^0-9]', '', item_price_doms[0].text_content()))
+            item_url = 'https://www.e-earphone.jp' + item_url_dom.attribute('href', '')
             image_url = 'https://www.e-earphone.jp' + item_img_dom.attribute('src', '')
 
             # フィルタ
@@ -106,12 +108,11 @@ def search_used():
     if item_keyword is None:
         return jsonify({'status': 'NG', 'body': []})
 
-
     # 「【～～】」という表記を除去するか？
     remove_keyword_flg = request.args.get('remove_keyword') is not None
 
     # HTTPリクエスト・スクレイピングを実施
-    url = 'https://www.e-earphone.jp/shop/shopbrand.html'
+    url = 'https://www.e-earphone.jp/product/search/list/'
     result = []
     page_index = 1
     while True:
@@ -120,34 +121,38 @@ def search_used():
             break
 
         parameter = {
-            'page': page_index,
-            'search': item_keyword,
-            'sort': 'order',
-            'money1': '',
-            'money2': '',
-            'prize1': item_keyword,
-            'company1': '',
-            'content1': '',
-            'originalcode1': '',
-            'category': 'ct3265',
-            'subcategory': ''
+            'pageno': page_index,
+            'search_type': 2,
+            'search_word': item_keyword,
+            'orderby': 0
         }
-        tree = DomObject.from_string(http_client.get_html(url, parameter))
+        response_html = http_client.get_html(url, parameter)
+        tree = DomObject.from_string(response_html)
 
         # 検索結果を1件づつ取り出す
-        item_list = tree.select_all('ul.M_innerList > li')
+        item_list = tree.select_all('div.item-list__contents')
         if len(item_list) == 0:
             # これ以上ヒットしない＝ページめくり終了なのでbreak
             break
+        print(f'page_index={page_index} {len(item_list)} items')
         for record in item_list:
             # 必要なDOMが収集できなければ飛ばす
-            item_name_dom = record.select('p.M_cl_name > a')
-            item_price_dom = record.select('p.M_cl_price > span')
-            item_img_dom = record.select('div.M_cl_imgWrap > a > img')
+            item_brand_dom = record.select('p.item-list__brand')
+            item_name_dom = record.select('p.item-list__name')
+            item_url_dom = record.select('a')
+            item_price_doms = [x for x in record.select_all('p.item-list__price > span')
+                               if '￥' in x.text_content()]
+            item_img_dom = record.select('div.item-list__img img')
+            if item_brand_dom is None:
+                print(f'skip: page_index={page_index}-brand')
+                continue
+            if item_url_dom is None:
+                print(f'skip: page_index={page_index}-url')
+                continue
             if item_name_dom is None:
                 print(f'skip: page_index={page_index}-name')
                 continue
-            if item_price_dom is None:
+            if len(item_price_doms) == 0:
                 print(f'skip: page_index={page_index}-price')
                 continue
             if item_img_dom is None:
@@ -155,25 +160,12 @@ def search_used():
                 continue
 
             # 各要素を収集する
-            item_name = item_name_dom.text_content()
-            item_price = int(re.sub('[^0-9]', '', item_price_dom.text_content()))
-            item_url = 'https://www.e-earphone.jp' + item_name_dom.attribute('href', '')
+            item_name = item_brand_dom.text_content() + ' ' + item_name_dom.text_content()
+            item_price = int(re.sub('[^0-9]', '', item_price_doms[0].text_content()))
+            item_url = 'https://www.e-earphone.jp' + item_url_dom.attribute('href', '')
             image_url = 'https://www.e-earphone.jp' + item_img_dom.attribute('src', '')
 
             # フィルタ
-            item_name = item_name.replace('【中古】', '')
-            m = re.match('^.+【([^/]*?)/([^/]*?)】$', item_name)
-            if m is not None:
-                shop_name = m.group(1)
-                shop_item_id = m.group(2)
-            else:
-                m = re.match('^.+【([^/]*?)】$', item_name)
-                if m is not None:
-                    shop_name = m.group(1)
-                    shop_item_id = ''
-                else:
-                    shop_name = '(不明)'
-                    shop_item_id = ''
             if remove_keyword_flg:
                 item_name = re.sub('【.+?】', '', item_name)
             item_name = re.sub('^ +', '', item_name)
@@ -185,8 +177,8 @@ def search_used():
                 'name': item_name,
                 'item_url': item_url,
                 'image_url': image_url,
-                'shop_name': shop_name,
-                'shop_item_id': shop_item_id
+                'shop_name': '(不明)',
+                'shop_item_id': '',
             })
 
         # ページめくりの準備
