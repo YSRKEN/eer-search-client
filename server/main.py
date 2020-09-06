@@ -182,8 +182,6 @@ def search_used():
                 'name': item_name,
                 'item_url': item_url,
                 'image_url': image_url,
-                'shop_name': '(不明)',
-                'shop_item_id': '',
             })
 
         # ページめくりの準備

@@ -18,8 +18,6 @@ interface UsedItem {
   name: string;
   item_url: string;
   image_url: string;
-  shop_name: string;
-  shop_item_id: string;
 }
 
 type ShowMode = 'New' | 'Used';
@@ -188,20 +186,14 @@ const ResultUsedView: React.FC<{
   const [nameFilter, setNameFilter] = useState('');
   const [sortKey, setSortKey] = useState('');
   const [sortDescFlg, setSortDescFlg] = useState(false);
-  const [shopFilter, setShopFilter] = useState('');
 
   const onChangeMameFilter = (e: FormEvent<HTMLInputElement>) => {
     setNameFilter(e.currentTarget.value);
   };
 
-  const onChangeShop = (e: FormEvent<HTMLSelectElement>) => {
-    setShopFilter(e.currentTarget.value);
-  };
-
   const createItemList = () => {
     let temp = usedItemList
       .filter(record => nameFilter !== '' ? record.name.includes(nameFilter) : true);
-    temp = temp.filter(record => shopFilter !== '' ? record.shop_name === shopFilter : true);
     switch (sortKey) {
       case '商品名':
         temp = temp.sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0);
@@ -266,28 +258,16 @@ const ResultUsedView: React.FC<{
               placeholder="入力したワードを含むもののみ表示"
               value={nameFilter} onChange={onChangeMameFilter} />
           </div>
-          <div className="form-group d-flex mb-0">
-            <label className="text-nowrap mr-3 mt-2" htmlFor="filterShop">販売店</label>
-            <select className="form-control" id="filterShop" value={shopFilter} onChange={onChangeShop}>
-              <option value=''>(未指定)</option>
-              <option value='大阪日本橋本店'>大阪日本橋本店</option>
-              <option value='梅田EST店'>梅田EST店</option>
-              <option value='名古屋大須店'>名古屋大須店</option>
-              <option value='秋葉原店'>秋葉原店</option>
-            </select>
-          </div>
         </form>
       </div>
     </div>
-    <div className="row mt-3 justify-content-center">
+    <div className="row justify-content-center">
       <div className="col-12 col-md-8">
         <table className="border table table-striped table-nowrap table-bordered table-sm">
           <thead>
             <tr>
               <th className="text-nowrap" onClick={onClickItemNameLabel}>{itemNameLabel()}</th>
               <th className="text-nowrap" onClick={onClickItemPriceLabel}>{itemPriceLabel()}</th>
-              <th className="text-nowrap">販売店</th>
-              <th className="text-nowrap">商品番号</th>
               <th className="text-nowrap">画像</th>
             </tr>
           </thead>
@@ -297,8 +277,6 @@ const ResultUsedView: React.FC<{
                 <tr key={index}>
                   <td className="align-middle"><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
                   <td className="align-middle">{record.price}</td>
-                  <td className="align-middle">{record.shop_name}</td>
-                  <td className="align-middle">{record.shop_item_id}</td>
                   <td className="align-middle"><img src={record.image_url} width={THUMBNAIL_SIZE} height={THUMBNAIL_SIZE} alt={record.name} /></td>
                 </tr>
               );
