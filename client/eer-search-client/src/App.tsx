@@ -34,8 +34,8 @@ type ShowMode = 'New' | 'Used';
 
 const NewItemRecord: React.FC<{ record: NewItem }> = ({ record }) => {
   const [showStockFlg, setShowStockFlg] = useState(false);
-  const [stockText, setStockText] = useState('在庫：取得中...');
-  const [sampleText, setSampleText] = useState('試聴機：取得中...');
+  const [stockText, setStockText] = useState('取得中...');
+  const [sampleText, setSampleText] = useState('取得中...');
 
   useEffect(() => {
     const refresh = async () => {
@@ -46,18 +46,18 @@ const NewItemRecord: React.FC<{ record: NewItem }> = ({ record }) => {
           sample: string[]
         } = await result.json();
         if (result2.stock.length === 0) {
-          setStockText('在庫：なし');
+          setStockText('なし');
         } else {
-          setStockText('在庫：' + result2.stock.map(r => `${r.name}(${r.info})`).join('、'));
+          setStockText(result2.stock.map(r => `${r.name}(${r.info})`).join('、'));
         }
         if (result2.sample.length === 0) {
-          setSampleText('試聴機：なし');
+          setSampleText('なし');
         } else {
-          setSampleText('試聴機：' + result2.sample.join('、'));
+          setSampleText('' + result2.sample.join('、'));
         }
       } else {
-        setStockText('在庫：不明');
-        setSampleText('試聴機：不明');
+        setStockText('不明');
+        setSampleText('不明');
       }
     };
     if (showStockFlg) {
@@ -78,8 +78,8 @@ const NewItemRecord: React.FC<{ record: NewItem }> = ({ record }) => {
       ? <tr>
         <td className="align-middle" colSpan={4}>
           <ul className="my-0">
-            <li>{stockText}</li>
-            <li>{sampleText}</li>
+            <li><strong>在庫：</strong>{stockText}</li>
+            <li><strong>試聴機：</strong>{sampleText}</li>
           </ul>
         </td>
       </tr>
