@@ -24,6 +24,7 @@ def index():
 def search_new():
     # 検索キーワード
     item_keyword = request.args.get('item_name')
+    print(f'/search_new?item_name={item_keyword}')
     if item_keyword is None:
         return jsonify({'status': 'NG', 'body': []})
 
@@ -110,6 +111,7 @@ def search_new():
 def search_used():
     # 検索キーワード
     item_keyword = request.args.get('item_name')
+    print(f'/search_used?item_name={item_keyword}')
     if item_keyword is None:
         return jsonify({'status': 'NG', 'body': []})
 
@@ -195,6 +197,7 @@ def search_used():
 def get_stock_data():
     # アイテムのURL
     item_url = request.args.get('item_url')
+    print(f'/get_stock_data?item_url={item_url}')
     if item_url is None:
         return jsonify({'result': 'ng'}), 400
 
@@ -221,6 +224,7 @@ def get_stock_data():
 def get_used_data():
     # アイテムのURL
     item_url = request.args.get('item_url')
+    print(f'/get_used_data?item_url={item_url}')
     if item_url is None:
         return jsonify({'result': 'ng'}), 400
 
@@ -239,30 +243,37 @@ def get_used_data():
 
     # 店名
     div_element = tree.select('div.detail-shop-stock')
-    for dl_element in div_element.select_all('dl.detail-shop-stock__list'):
-        shop_name = dl_element.select('dt').text_content().replace('\n', '').replace(' ', '')
-        if '×在庫なし' not in dl_element.select('dd').text_content():
-            used_item_info['shop_name'] = shop_name
-            break
+    if div_element is not None:
+        for dl_element in div_element.select_all('dl.detail-shop-stock__list'):
+            dt_element = dl_element.select('dt')
+            dd_element = dl_element.select('dd')
+            if dt_element is not None and dd_element is not None and '×在庫なし' not in dd_element.text_content():
+                    used_item_info['shop_name'] = dt_element.text_content().replace('\n', '').replace(' ', '')
+                    break
 
     # ランク
     span_element = tree.select('p.detail-item-used-state__rank.active > span')
-    used_item_info['rank'] = span_element.text_content().replace('：', '')
+    if span_element is not None:
+        used_item_info['rank'] = span_element.text_content().replace('：', '')
 
     # 外箱
     dd_element = tree.select('dd.detail-item-used-state__main.sp')
-    used_item_info['fancy_box_flg'] = '有' in dd_element.text_content()
+    if dd_element is not None:
+        used_item_info['fancy_box_flg'] = '有' in dd_element.text_content()
 
     # 商品状態・付属内容・欠品内容
     dd_element = tree.select('dd.detail-item-used-state__main.sp-w100')
-    p_elements = dd_element.select_all('p.detail-item-used-state__contents__inner')
-    used_item_info['item_status'] = p_elements[0].text_content().replace('\n', '').replace(' ', '')
-    used_item_info['accessories'] = p_elements[1].text_content().replace('\n', '').replace(' ', '')
-    used_item_info['stockout'] = p_elements[2].text_content().replace('\n', '').replace(' ', '')
+    if dd_element is not None:
+        p_elements = dd_element.select_all('p.detail-item-used-state__contents__inner')
+        if len(p_elements) >= 3:
+            used_item_info['item_status'] = p_elements[0].text_content().replace('\n', '').replace(' ', '')
+            used_item_info['accessories'] = p_elements[1].text_content().replace('\n', '').replace(' ', '')
+            used_item_info['stockout'] = p_elements[2].text_content().replace('\n', '').replace(' ', '')
 
     # 補償
     span_element = tree.select('span.compensation-text')
-    used_item_info['compensation'] = span_element.text_content()
+    if span_element is not None:
+        used_item_info['compensation'] = span_element.text_content()
     return jsonify(used_item_info)
 
 
