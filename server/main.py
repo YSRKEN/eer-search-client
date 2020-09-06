@@ -217,6 +217,7 @@ def get_stock_data():
 
 
 @app.route('/get_used_data')
+@cache.cached(timeout=3600, query_string=True)
 def get_used_data():
     # アイテムのURL
     item_url = request.args.get('item_url')
