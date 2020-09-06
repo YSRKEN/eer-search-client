@@ -244,7 +244,7 @@ const UsedItemRecord: React.FC<{ record: UsedItem }> = ({ record }) => {
       <td className="align-middle">{record.price}</td>
       <td className="align-middle"><img src={record.image_url} width={THUMBNAIL_SIZE} height={THUMBNAIL_SIZE} alt={record.name} /></td>
       <td className="align-middle text-center"><button className="btn btn-primary"
-        onClick={() => setShowStockFlg(!showStockFlg)}>在庫</button></td>
+        onClick={() => setShowStockFlg(!showStockFlg)}>状態</button></td>
     </tr>
     {showStockFlg
       ? <tr>
