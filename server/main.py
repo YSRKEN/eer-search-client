@@ -1,4 +1,5 @@
 import re
+from typing import List, Dict
 
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_caching import Cache
@@ -189,6 +190,32 @@ def search_used():
         page_index += 1
 
     return jsonify(result)
+
+
+@app.route('/get_stock_data')
+@cache.cached(timeout=3600, query_string=True)
+def get_stock_data():
+    # アイテムのURL
+    item_url = request.args.get('item_url')
+    if item_url is None:
+        return jsonify({'result': 'ng'}), 400
+
+    # HTTPリクエスト・スクレイピングを実施
+    response_html = http_client.get_html(item_url)
+    tree = DomObject.from_string(response_html)
+    div_element = tree.select('div.detail-shop-stock')
+    stock_memo: List[Dict[str, str]] = []
+    sample_memo: List[str] = []
+    for dl_element in div_element.select_all('dl.detail-shop-stock__list'):
+        shop_name = dl_element.select('dt').text_content().replace('\n', '').replace(' ', '')
+        temp = dl_element.select('dd').text_content().split('/')
+        stock_data = temp[0].replace('\n', '').replace(' ', '')
+        sample_data = temp[1].replace('\n', '').replace(' ', '')
+        if '×在庫なし' not in stock_data:
+            stock_memo.append({'name': shop_name, 'info': stock_data})
+        if '試聴機なし' not in sample_data:
+            sample_memo.append(shop_name)
+    return jsonify({'stock': stock_memo, 'sample': sample_memo})
 
 
 @app.route("/<static_file>")

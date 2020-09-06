@@ -24,6 +24,61 @@ interface UsedItem {
 
 type ShowMode = 'New' | 'Used';
 
+const NewItemRecord: React.FC<{ record: NewItem }> = ({record}) => {
+  const [showStockFlg, setShowStockFlg] = useState(false);
+  const [stockText, setStockText] = useState('在庫：取得中...');
+  const [sampleText, setSampleText] = useState('試聴機：取得中...');
+
+  useEffect(() => {
+    const refresh = async () => {
+      const result = await fetch(`${SERVER_URL}/get_stock_data?item_url=${record.item_url}`);
+      if (result.ok) {
+        const result2: {
+          stock: {name: string, info: string}[],
+          sample: string[]
+        } = await result.json();
+        if (result2.stock.length === 0) {
+          setStockText('在庫：なし');
+        } else {
+          setStockText('在庫：' + result2.stock.map(r => `${r.name}(${r.info})`).join('、'));
+        }
+        if (result2.sample.length === 0) {
+          setSampleText('試聴機：なし');
+        } else {
+          setSampleText('試聴機：' + result2.sample.join('、'));
+        }
+      } else {
+        setStockText('在庫：不明');
+        setSampleText('試聴機：不明');
+      }
+    };
+    if (showStockFlg) {
+      refresh();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showStockFlg]);
+
+  return (<>
+    <tr>
+      <td className="align-middle"><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
+      <td className="align-middle">{record.price}</td>
+      <td className="align-middle"><img src={record.image_url} width={THUMBNAIL_SIZE} height={THUMBNAIL_SIZE} alt={record.name} /></td>
+      <td className="align-middle text-center"><button className="btn btn-primary"
+        onClick={() => setShowStockFlg(!showStockFlg)}>在庫</button></td>
+    </tr>
+    {showStockFlg
+      ? <tr>
+        <td className="align-middle" colSpan={4}>
+          <ul className="my-0">
+            <li>{stockText}</li>
+            <li>{sampleText}</li>
+          </ul>
+        </td>
+      </tr>
+      : <></>}
+  </>);
+};
+
 const ResultNewView: React.FC<{
   newItemList: NewItem[]
 }> = ({ newItemList }) => {
@@ -38,13 +93,13 @@ const ResultNewView: React.FC<{
   const createItemList = () => {
     let temp = newItemList
       .filter(record => nameFilter !== '' ? record.name.includes(nameFilter) : true);
-    switch(sortKey) {
+    switch (sortKey) {
       case '商品名':
         temp = temp.sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0);
         break;
       case '価格':
-          temp = temp.sort((a, b) => a.price > b.price ? 1 : a.price < b.price ? -1 : 0);
-          break;
+        temp = temp.sort((a, b) => a.price > b.price ? 1 : a.price < b.price ? -1 : 0);
+        break;
     }
     if (sortDescFlg) {
       temp = temp.reverse();
@@ -67,7 +122,7 @@ const ResultNewView: React.FC<{
   }
 
   const onClickItemNameLabel = () => {
-    if (sortKey !== '商品名') { 
+    if (sortKey !== '商品名') {
       setSortKey('商品名');
       setSortDescFlg(false);
     } else {
@@ -80,7 +135,7 @@ const ResultNewView: React.FC<{
   };
 
   const onClickItemPriceLabel = () => {
-    if (sortKey !== '価格') { 
+    if (sortKey !== '価格') {
       setSortKey('価格');
       setSortDescFlg(false);
     } else {
@@ -113,18 +168,13 @@ const ResultNewView: React.FC<{
               <th className="text-nowrap" onClick={onClickItemNameLabel}>{itemNameLabel()}</th>
               <th className="text-nowrap" onClick={onClickItemPriceLabel}>{itemPriceLabel()}</th>
               <th className="text-nowrap">画像</th>
+              <th className="text-nowrap">詳細</th>
             </tr>
           </thead>
           <tbody>
             {createItemList().map((record, index) => {
-                return (
-                  <tr key={index}>
-                    <td className="align-middle"><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
-                    <td className="align-middle">{record.price}</td>
-                    <td className="align-middle"><img src={record.image_url} width={THUMBNAIL_SIZE} height={THUMBNAIL_SIZE} alt={record.name} /></td>
-                  </tr>
-                );
-              })}
+              return <NewItemRecord record={record} key={index} />;
+            })}
           </tbody>
         </table>
       </div>
@@ -152,13 +202,13 @@ const ResultUsedView: React.FC<{
     let temp = usedItemList
       .filter(record => nameFilter !== '' ? record.name.includes(nameFilter) : true);
     temp = temp.filter(record => shopFilter !== '' ? record.shop_name === shopFilter : true);
-    switch(sortKey) {
+    switch (sortKey) {
       case '商品名':
         temp = temp.sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0);
         break;
       case '価格':
-          temp = temp.sort((a, b) => a.price > b.price ? 1 : a.price < b.price ? -1 : 0);
-          break;
+        temp = temp.sort((a, b) => a.price > b.price ? 1 : a.price < b.price ? -1 : 0);
+        break;
     }
     if (sortDescFlg) {
       temp = temp.reverse();
@@ -181,7 +231,7 @@ const ResultUsedView: React.FC<{
   }
 
   const onClickItemNameLabel = () => {
-    if (sortKey !== '商品名') { 
+    if (sortKey !== '商品名') {
       setSortKey('商品名');
       setSortDescFlg(false);
     } else {
@@ -194,7 +244,7 @@ const ResultUsedView: React.FC<{
   };
 
   const onClickItemPriceLabel = () => {
-    if (sortKey !== '価格') { 
+    if (sortKey !== '価格') {
       setSortKey('価格');
       setSortDescFlg(false);
     } else {
@@ -206,7 +256,7 @@ const ResultUsedView: React.FC<{
     }
   };
 
-return (<>
+  return (<>
     <div className="row mt-3 justify-content-center">
       <div className="col-12 col-md-8">
         <form>
@@ -219,12 +269,12 @@ return (<>
           <div className="form-group d-flex mb-0">
             <label className="text-nowrap mr-3 mt-2" htmlFor="filterShop">販売店</label>
             <select className="form-control" id="filterShop" value={shopFilter} onChange={onChangeShop}>
-                <option value=''>(未指定)</option>
-                <option value='大阪日本橋本店'>大阪日本橋本店</option>
-                <option value='梅田EST店'>梅田EST店</option>
-                <option value='名古屋大須店'>名古屋大須店</option>
-                <option value='秋葉原店'>秋葉原店</option>
-              </select>
+              <option value=''>(未指定)</option>
+              <option value='大阪日本橋本店'>大阪日本橋本店</option>
+              <option value='梅田EST店'>梅田EST店</option>
+              <option value='名古屋大須店'>名古屋大須店</option>
+              <option value='秋葉原店'>秋葉原店</option>
+            </select>
           </div>
         </form>
       </div>
@@ -335,7 +385,7 @@ const App: React.FC = () => {
             <div className="form-group">
               <label htmlFor="searchWord">検索ワード</label>
               <input type="text" className="form-control" id="searchWord" placeholder="検索ワード"
-                value={searchWord} onChange={onChangeSearchWord} readOnly={loadIngFlg}/>
+                value={searchWord} onChange={onChangeSearchWord} readOnly={loadIngFlg} />
             </div>
             <div className="form-group d-flex">
               <label className="text-nowrap mt-2" htmlFor="showMode">商品状態</label>
