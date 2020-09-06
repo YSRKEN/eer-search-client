@@ -1,6 +1,8 @@
 import re
+from typing import List, Dict
 
 from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask_caching import Cache
 from flask_cors import CORS
 
 from constant import SERVER_PORT, MAX_PAGE
@@ -9,6 +11,7 @@ from scraping import DomObject, HttpClient
 app = Flask(__name__)
 CORS(app)
 http_client = HttpClient()
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 
 @app.route('/')
@@ -17,6 +20,7 @@ def index():
 
 
 @app.route('/search_new')
+@cache.cached(timeout=600, query_string=True)
 def search_new():
     # 検索キーワード
     item_keyword = request.args.get('item_name')
@@ -102,6 +106,7 @@ def search_new():
 
 
 @app.route('/search_used')
+@cache.cached(timeout=600, query_string=True)
 def search_used():
     # 検索キーワード
     item_keyword = request.args.get('item_name')
@@ -177,14 +182,87 @@ def search_used():
                 'name': item_name,
                 'item_url': item_url,
                 'image_url': image_url,
-                'shop_name': '(不明)',
-                'shop_item_id': '',
             })
 
         # ページめくりの準備
         page_index += 1
 
     return jsonify(result)
+
+
+@app.route('/get_stock_data')
+@cache.cached(timeout=3600, query_string=True)
+def get_stock_data():
+    # アイテムのURL
+    item_url = request.args.get('item_url')
+    if item_url is None:
+        return jsonify({'result': 'ng'}), 400
+
+    # HTTPリクエスト・スクレイピングを実施
+    response_html = http_client.get_html(item_url)
+    tree = DomObject.from_string(response_html)
+    div_element = tree.select('div.detail-shop-stock')
+    stock_memo: List[Dict[str, str]] = []
+    sample_memo: List[str] = []
+    for dl_element in div_element.select_all('dl.detail-shop-stock__list'):
+        shop_name = dl_element.select('dt').text_content().replace('\n', '').replace(' ', '')
+        temp = dl_element.select('dd').text_content().split('/')
+        stock_data = temp[0].replace('\n', '').replace(' ', '')
+        sample_data = temp[1].replace('\n', '').replace(' ', '')
+        if '×在庫なし' not in stock_data:
+            stock_memo.append({'name': shop_name, 'info': stock_data})
+        if '試聴機なし' not in sample_data:
+            sample_memo.append(shop_name)
+    return jsonify({'stock': stock_memo, 'sample': sample_memo})
+
+
+@app.route('/get_used_data')
+def get_used_data():
+    # アイテムのURL
+    item_url = request.args.get('item_url')
+    if item_url is None:
+        return jsonify({'result': 'ng'}), 400
+
+    # HTTPリクエスト・スクレイピングを実施
+    response_html = http_client.get_html(item_url)
+    tree = DomObject.from_string(response_html)
+    used_item_info = {
+        'shop_name': '不明',
+        'rank': '不明',
+        'fancy_box_flg': False,
+        'item_status': '不明',
+        'accessories': '不明',
+        'stockout': '不明',
+        'compensation': '不明'
+    }
+
+    # 店名
+    div_element = tree.select('div.detail-shop-stock')
+    for dl_element in div_element.select_all('dl.detail-shop-stock__list'):
+        shop_name = dl_element.select('dt').text_content().replace('\n', '').replace(' ', '')
+        if '×在庫なし' not in dl_element.select('dd').text_content():
+            used_item_info['shop_name'] = shop_name
+            break
+
+    # ランク
+    span_element = tree.select('p.detail-item-used-state__rank.active > span')
+    used_item_info['rank'] = span_element.text_content().replace('：', '')
+
+    # 外箱
+    dd_element = tree.select('dd.detail-item-used-state__main.sp')
+    used_item_info['fancy_box_flg'] = '有' in dd_element.text_content()
+
+    # 商品状態・付属内容・欠品内容
+    dd_element = tree.select('dd.detail-item-used-state__main.sp-w100')
+    p_elements = dd_element.select_all('p.detail-item-used-state__contents__inner')
+    used_item_info['item_status'] = p_elements[0].text_content().replace('\n', '').replace(' ', '')
+    used_item_info['accessories'] = p_elements[1].text_content().replace('\n', '').replace(' ', '')
+    used_item_info['stockout'] = p_elements[2].text_content().replace('\n', '').replace(' ', '')
+
+    # 補償
+    span_element = tree.select('span.compensation-text')
+    used_item_info['compensation'] = span_element.text_content()
+    return jsonify(used_item_info)
 
 
 @app.route("/<static_file>")
