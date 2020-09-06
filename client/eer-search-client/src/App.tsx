@@ -20,6 +20,16 @@ interface UsedItem {
   image_url: string;
 }
 
+interface UsedItemInfo {
+  shop_name: string,      // 置いてあるお店の名前
+  rank: string,           // ランク(未開封品～ジャンク)
+  fancy_box_flg: boolean, // 外箱の有無
+  item_status: string,    // 商品状態
+  accessories: string,    // 付属内容
+  stockout: string,       // 欠品内容
+  compensation: string    // 補償
+}
+
 type ShowMode = 'New' | 'Used';
 
 const NewItemRecord: React.FC<{ record: NewItem }> = ({record}) => {
@@ -180,6 +190,68 @@ const ResultNewView: React.FC<{
   </>);
 }
 
+const UsedItemRecord: React.FC<{ record: UsedItem }> = ({record}) => {
+  const [showStockFlg, setShowStockFlg] = useState(false);
+  const [usedItemInfo, setUsedItemInfo] = useState<UsedItemInfo>({
+    shop_name: '取得中...',
+    rank: '取得中...',
+    fancy_box_flg: false,
+    item_status: '取得中...',
+    accessories: '取得中...',
+    stockout: '取得中...',
+    compensation: '取得中...'
+  });
+
+  useEffect(() => {
+    const refresh = async () => {
+      const result = await fetch(`${SERVER_URL}/get_used_data?item_url=${record.item_url}`);
+      if (result.ok) {
+        const result2: UsedItemInfo = await result.json();
+        setUsedItemInfo(result2);
+      } else {
+        setUsedItemInfo({
+          shop_name: '不明',
+          rank: '不明',
+          fancy_box_flg: false,
+          item_status: '不明',
+          accessories: '不明',
+          stockout: '不明',
+          compensation: '不明'
+        });
+      }
+    };
+    if (showStockFlg) {
+      refresh();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showStockFlg]);
+
+  return (<>
+    <tr>
+    <td className="align-middle"><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
+                  <td className="align-middle">{record.price}</td>
+                  <td className="align-middle"><img src={record.image_url} width={THUMBNAIL_SIZE} height={THUMBNAIL_SIZE} alt={record.name} /></td>
+      <td className="align-middle text-center"><button className="btn btn-primary"
+        onClick={() => setShowStockFlg(!showStockFlg)}>在庫</button></td>
+    </tr>
+    {showStockFlg
+      ? <tr>
+        <td className="align-middle" colSpan={4}>
+          <ul>
+            <li>店名：{usedItemInfo.shop_name}</li>
+            <li>ランク：{usedItemInfo.rank}</li>
+            <li>外箱：{usedItemInfo.fancy_box_flg ? '有り' : '無し'}</li>
+            <li>商品状態：{usedItemInfo.item_status}</li>
+            <li>付属内容：{usedItemInfo.accessories}</li>
+            <li>欠品内容：{usedItemInfo.stockout}</li>
+            <li>補償：{usedItemInfo.compensation}</li>
+          </ul>
+        </td>
+      </tr>
+      : <></>}
+  </>);
+};
+
 const ResultUsedView: React.FC<{
   usedItemList: UsedItem[]
 }> = ({ usedItemList }) => {
@@ -269,17 +341,12 @@ const ResultUsedView: React.FC<{
               <th className="text-nowrap" onClick={onClickItemNameLabel}>{itemNameLabel()}</th>
               <th className="text-nowrap" onClick={onClickItemPriceLabel}>{itemPriceLabel()}</th>
               <th className="text-nowrap">画像</th>
+              <th className="text-nowrap">詳細</th>
             </tr>
           </thead>
           <tbody>
             {createItemList().map((record, index) => {
-              return (
-                <tr key={index}>
-                  <td className="align-middle"><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
-                  <td className="align-middle">{record.price}</td>
-                  <td className="align-middle"><img src={record.image_url} width={THUMBNAIL_SIZE} height={THUMBNAIL_SIZE} alt={record.name} /></td>
-                </tr>
-              );
+              return <UsedItemRecord record={record} key={index} />;
             })}
           </tbody>
         </table>
