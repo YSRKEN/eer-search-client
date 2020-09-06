@@ -1,6 +1,7 @@
 import re
 
 from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask_caching import Cache
 from flask_cors import CORS
 
 from constant import SERVER_PORT, MAX_PAGE
@@ -9,6 +10,7 @@ from scraping import DomObject, HttpClient
 app = Flask(__name__)
 CORS(app)
 http_client = HttpClient()
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 
 @app.route('/')
@@ -17,6 +19,7 @@ def index():
 
 
 @app.route('/search_new')
+@cache.cached(timeout=600, query_string=True)
 def search_new():
     # 検索キーワード
     item_keyword = request.args.get('item_name')
@@ -102,6 +105,7 @@ def search_new():
 
 
 @app.route('/search_used')
+@cache.cached(timeout=600, query_string=True)
 def search_used():
     # 検索キーワード
     item_keyword = request.args.get('item_name')
