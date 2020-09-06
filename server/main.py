@@ -216,6 +216,55 @@ def get_stock_data():
     return jsonify({'stock': stock_memo, 'sample': sample_memo})
 
 
+@app.route('/get_used_data')
+def get_used_data():
+    # アイテムのURL
+    item_url = request.args.get('item_url')
+    if item_url is None:
+        return jsonify({'result': 'ng'}), 400
+
+    # HTTPリクエスト・スクレイピングを実施
+    response_html = http_client.get_html(item_url)
+    tree = DomObject.from_string(response_html)
+    used_item_info = {
+        'shop_name': '不明',
+        'rank': '不明',
+        'fancy_box_flg': False,
+        'item_status': '不明',
+        'accessories': '不明',
+        'stockout': '不明',
+        'compensation': '不明'
+    }
+
+    # 店名
+    div_element = tree.select('div.detail-shop-stock')
+    for dl_element in div_element.select_all('dl.detail-shop-stock__list'):
+        shop_name = dl_element.select('dt').text_content().replace('\n', '').replace(' ', '')
+        if '×在庫なし' not in dl_element.select('dd').text_content():
+            used_item_info['shop_name'] = shop_name
+            break
+
+    # ランク
+    span_element = tree.select('p.detail-item-used-state__rank.active > span')
+    used_item_info['rank'] = span_element.text_content().replace('：', '')
+
+    # 外箱
+    dd_element = tree.select('dd.detail-item-used-state__main.sp')
+    used_item_info['fancy_box_flg'] = '有' in dd_element.text_content()
+
+    # 商品状態・付属内容・欠品内容
+    dd_element = tree.select('dd.detail-item-used-state__main.sp-w100')
+    p_elements = dd_element.select_all('p.detail-item-used-state__contents__inner')
+    used_item_info['item_status'] = p_elements[0].text_content().replace('\n', '').replace(' ', '')
+    used_item_info['accessories'] = p_elements[1].text_content().replace('\n', '').replace(' ', '')
+    used_item_info['stockout'] = p_elements[2].text_content().replace('\n', '').replace(' ', '')
+
+    # 補償
+    span_element = tree.select('span.compensation-text')
+    used_item_info['compensation'] = span_element.text_content()
+    return jsonify(used_item_info)
+
+
 @app.route("/<static_file>")
 def manifest(static_file: str):
     return send_from_directory('./root', static_file)

@@ -32,7 +32,7 @@ interface UsedItemInfo {
 
 type ShowMode = 'New' | 'Used';
 
-const NewItemRecord: React.FC<{ record: NewItem }> = ({record}) => {
+const NewItemRecord: React.FC<{ record: NewItem }> = ({ record }) => {
   const [showStockFlg, setShowStockFlg] = useState(false);
   const [stockText, setStockText] = useState('在庫：取得中...');
   const [sampleText, setSampleText] = useState('試聴機：取得中...');
@@ -42,7 +42,7 @@ const NewItemRecord: React.FC<{ record: NewItem }> = ({record}) => {
       const result = await fetch(`${SERVER_URL}/get_stock_data?item_url=${record.item_url}`);
       if (result.ok) {
         const result2: {
-          stock: {name: string, info: string}[],
+          stock: { name: string, info: string }[],
           sample: string[]
         } = await result.json();
         if (result2.stock.length === 0) {
@@ -63,7 +63,7 @@ const NewItemRecord: React.FC<{ record: NewItem }> = ({record}) => {
     if (showStockFlg) {
       refresh();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showStockFlg]);
 
   return (<>
@@ -190,7 +190,7 @@ const ResultNewView: React.FC<{
   </>);
 }
 
-const UsedItemRecord: React.FC<{ record: UsedItem }> = ({record}) => {
+const UsedItemRecord: React.FC<{ record: UsedItem }> = ({ record }) => {
   const [showStockFlg, setShowStockFlg] = useState(false);
   const [usedItemInfo, setUsedItemInfo] = useState<UsedItemInfo>({
     shop_name: '取得中...',
@@ -223,28 +223,58 @@ const UsedItemRecord: React.FC<{ record: UsedItem }> = ({record}) => {
     if (showStockFlg) {
       refresh();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showStockFlg]);
+
+  const status_list = usedItemInfo.item_status.includes('、')
+    ? usedItemInfo.item_status.split('、').filter(r => r !== '')
+    : [usedItemInfo.item_status];
+
+  const accessories_list = usedItemInfo.accessories.includes('□')
+    ? usedItemInfo.accessories.split('□').filter(r => r !== '')
+    : [usedItemInfo.accessories];
+
+  const stockout_list = usedItemInfo.stockout.includes('□')
+    ? usedItemInfo.stockout.split('□').filter(r => r !== '')
+    : [usedItemInfo.stockout];
 
   return (<>
     <tr>
-    <td className="align-middle"><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
-                  <td className="align-middle">{record.price}</td>
-                  <td className="align-middle"><img src={record.image_url} width={THUMBNAIL_SIZE} height={THUMBNAIL_SIZE} alt={record.name} /></td>
+      <td className="align-middle"><a href={record.item_url} target="_blank" rel="noopener noreferrer">{record.name}</a></td>
+      <td className="align-middle">{record.price}</td>
+      <td className="align-middle"><img src={record.image_url} width={THUMBNAIL_SIZE} height={THUMBNAIL_SIZE} alt={record.name} /></td>
       <td className="align-middle text-center"><button className="btn btn-primary"
         onClick={() => setShowStockFlg(!showStockFlg)}>在庫</button></td>
     </tr>
     {showStockFlg
       ? <tr>
         <td className="align-middle" colSpan={4}>
-          <ul>
-            <li>店名：{usedItemInfo.shop_name}</li>
-            <li>ランク：{usedItemInfo.rank}</li>
-            <li>外箱：{usedItemInfo.fancy_box_flg ? '有り' : '無し'}</li>
-            <li>商品状態：{usedItemInfo.item_status}</li>
-            <li>付属内容：{usedItemInfo.accessories}</li>
-            <li>欠品内容：{usedItemInfo.stockout}</li>
-            <li>補償：{usedItemInfo.compensation}</li>
+          <ul className="my-0">
+            <li><strong>店名：</strong>{usedItemInfo.shop_name}</li>
+            <li><strong>ランク：</strong>{usedItemInfo.rank}</li>
+            <li><strong>外箱：</strong>{usedItemInfo.fancy_box_flg ? '有り' : '無し'}</li>
+            <li><strong>商品状態：</strong>{
+              status_list.length === 1
+                ? status_list[0]
+                : <ul className="my-0">
+                  {status_list.map(r => <li key={r}>{r}</li>)}
+                </ul>
+            }</li>
+            <li><strong>付属内容：</strong>{
+              accessories_list.length === 1
+                ? accessories_list[0]
+                : <ul className="my-0">
+                  {accessories_list.map(r => <li key={r}>{r}</li>)}
+                </ul>
+            }</li>
+            <li><strong>欠品内容：</strong>{
+              stockout_list.length === 1
+                ? stockout_list[0]
+                : <ul className="my-0">
+                  {stockout_list.map(r => <li key={r}>{r}</li>)}
+                </ul>
+            }</li>
+            <li><strong>補償：</strong>{usedItemInfo.compensation}</li>
           </ul>
         </td>
       </tr>
