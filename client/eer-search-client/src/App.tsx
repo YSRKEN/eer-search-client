@@ -252,7 +252,7 @@ const UsedItemRecord: React.FC<{ record: UsedItem }> = ({ record }) => {
     </tr>
     {showStockFlg
       ? <tr>
-        <td className="align-middle" colSpan={4}>
+        <td className="align-middle" colSpan={6}>
           <ul className="my-0">
             <li><strong>店名：</strong>{usedItemInfo.shop_name}</li>
             <li><strong>ランク：</strong>{usedItemInfo.rank}</li>
