@@ -144,12 +144,16 @@ def search_used():
         print(f'page_index={page_index} {len(item_list)} items')
         for record in item_list:
             # 必要なDOMが収集できなければ飛ばす
+            item_status_dom = record.select('li.used')
             item_brand_dom = record.select('p.item-list__brand')
             item_name_dom = record.select('p.item-list__name')
             item_url_dom = record.select('a')
             item_price_doms = [x for x in record.select_all('p.item-list__price > span')
                                if '￥' in x.text_content()]
             item_img_dom = record.select('div.item-list__img img')
+            if item_status_dom is None:
+                print(f'skip: page_index={page_index}-status')
+                continue
             if item_brand_dom is None:
                 print(f'skip: page_index={page_index}-brand')
                 continue
@@ -167,10 +171,28 @@ def search_used():
                 continue
 
             # 各要素を収集する
+            item_rank = item_status_dom.text_content()
             item_name = item_brand_dom.text_content() + ' ' + item_name_dom.text_content()
             item_price = int(re.sub('[^0-9]', '', item_price_doms[0].text_content()))
             item_url = 'https://www.e-earphone.jp' + item_url_dom.attribute('href', '')
             image_url = 'https://www.e-earphone.jp' + item_img_dom.attribute('src', '')
+
+            # 店名を検出
+            shop_name = '不明'
+            if '【秋葉原】' in item_name:
+                shop_name = '秋葉原'
+            elif '【名古屋】' in item_name:
+                shop_name = '名古屋'
+            elif '【梅田】' in item_name:
+                shop_name = '梅田'
+            elif '【日本橋】' in item_name:
+                shop_name = '日本橋'
+
+            # ランクを検出
+            if 'ランク' in item_rank:
+                item_rank = item_rank.replace('中古 ', '').replace('中古　', '').replace('ランク', '')
+            else:
+                item_rank = '不明'
 
             # フィルタ
             if remove_keyword_flg:
@@ -182,6 +204,8 @@ def search_used():
             result.append({
                 'price': item_price,
                 'name': item_name,
+                'rank': item_rank,
+                'shop_name': shop_name,
                 'item_url': item_url,
                 'image_url': image_url,
             })
@@ -242,14 +266,18 @@ def get_used_data():
     }
 
     # 店名
-    div_element = tree.select('div.detail-shop-stock')
-    if div_element is not None:
-        for dl_element in div_element.select_all('dl.detail-shop-stock__list'):
-            dt_element = dl_element.select('dt')
-            dd_element = dl_element.select('dd')
-            if dt_element is not None and dd_element is not None and '×在庫なし' not in dd_element.text_content():
-                    used_item_info['shop_name'] = dt_element.text_content().replace('\n', '').replace(' ', '')
-                    break
+    h1_element = tree.select('h1.detail-item-name')
+    if h1_element is not None:
+        used_item_info['shop_name'] = '不明'
+        item_name = h1_element.text_content()
+        if '【秋葉原】' in item_name:
+            used_item_info['shop_name'] = '秋葉原'
+        elif '【名古屋】' in item_name:
+            used_item_info['shop_name'] = '名古屋'
+        elif '【梅田】' in item_name:
+            used_item_info['shop_name'] = '梅田'
+        elif '【日本橋】' in item_name:
+            used_item_info['shop_name'] = '日本橋'
 
     # ランク
     span_element = tree.select('p.detail-item-used-state__rank.active > span')
