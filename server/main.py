@@ -311,4 +311,4 @@ def manifest(static_file: str):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=SERVER_PORT)
+    app.run(debug=False, port=SERVER_PORT)
